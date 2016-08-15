@@ -10,7 +10,7 @@ defmodule Rumbl.Auth do
     user = user_id && repo.get(Rumbl.User, user_id)
     assign(conn, :current_user, user)
   end
-  
+
   def login(conn, user) do
     conn
     |> assign(:current_user, user)
@@ -33,11 +33,24 @@ defmodule Rumbl.Auth do
         {:ok, login(conn, user)}
       user ->
         {:error, :unauthorized, conn}
-      true -> 
+      true ->
         dummy_checkpw()
         {:error, :not_found, conn}
     end
-
   end
-  
+
+  import Phoenix.Controller
+  alias Rumbl.Router.Helpers
+
+  def authenticate_user(conn, _opts) do
+    if conn.assigns.current_user do
+      conn
+    else
+      conn
+      |> put_flash(:error, "You must be logged in to access that page")
+      |> redirect(to: Helpers.page_path(conn, :index))
+      |> halt()
+    end
+  end
+
 end
